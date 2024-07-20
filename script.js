@@ -42,21 +42,25 @@ document.addEventListener('DOMContentLoaded', () => {
             analyser.connect(audioContext.destination);
         }
 
-        audioContext.decodeAudioData(audioData, (decodedData) => {
-            if (source) {
-                source.disconnect();
-            }
+        audioContext.decodeAudioData(audioData)
+            .then((decodedData) => {
+                if (source) {
+                    source.disconnect();
+                }
 
-            buffer = decodedData;
-            source = audioContext.createBufferSource();
-            source.buffer = buffer;
-            source.connect(gainNode); // Connect source to gain node
-            gainNode.connect(analyser); // Connect gain node to analyser
-            analyser.connect(audioContext.destination);
+                buffer = decodedData;
+                source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(gainNode); // Connect source to gain node
+                gainNode.connect(analyser); // Connect gain node to analyser
+                analyser.connect(audioContext.destination);
 
-            drawWaveform();
-            drawSpectrogram();
-        });
+                drawWaveform();
+                drawSpectrogram();
+            })
+            .catch((error) => {
+                alert('Error decoding audio file: ' + error.message);
+            });
     }
 
     function drawWaveform() {
@@ -251,8 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             waveformCanvas.height = waveform.clientHeight;
             const waveformContext = waveformCanvas.getContext('2d');
             waveformContext.drawImage(waveform.querySelector('canvas'), 0, 0);
-            const waveformFrame = waveformCanvas.toDataURL('image/png');
-            frameData.push(waveformFrame);
+            frameData.push(waveformCanvas.toDataURL('image/png'));
 
             // Draw spectrogram frame
             const spectrogramCanvas = document.createElement('canvas');
@@ -260,36 +263,28 @@ document.addEventListener('DOMContentLoaded', () => {
             spectrogramCanvas.height = spectrogram.clientHeight;
             const spectrogramContext = spectrogramCanvas.getContext('2d');
             spectrogramContext.drawImage(spectrogram.querySelector('canvas'), 0, 0);
-            const spectrogramFrame = spectrogramCanvas.toDataURL('image/png');
-            frameData.push(spectrogramFrame);
+            frameData.push(spectrogramCanvas.toDataURL('image/png'));
         }
 
-        // Create video file with FFmpeg
-        const videoFrames = frameData.map((frame, index) => {
-            const frameName = `frame_${index}.png`;
-            return { name: frameName, data: frame };
-        });
-
-        for (let i = 0; i < videoFrames.length; i++) {
-            const { name, data } = videoFrames[i];
-            const response = await fetch(data);
-            const arrayBuffer = await response.arrayBuffer();
-            ffmpeg.FS('writeFile', name, new Uint8Array(arrayBuffer));
+        // Create video file using FFmpeg
+        for (let i = 0; i < frameData.length; i++) {
+            await ffmpeg.load();
+            ffmpeg.FS('writeFile', `frame${i}.png`, await fetchFile(frameData[i]));
         }
 
-        await ffmpeg.run('-framerate', `${frameRate}`, '-i', 'frame_%d.png', 'output.mp4');
+        await ffmpeg.run('-framerate', `${frameRate}`, '-i', 'frame%d.png', '-pix_fmt', 'yuv420p', 'output.mp4');
+
         const data = ffmpeg.FS('readFile', 'output.mp4');
 
-        // Download the video
+        // Create a Blob from the video data
         const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-        const videoUrl = URL.createObjectURL(videoBlob);
-        const downloadLink = document.createElement('a');
-        downloadLink.href = videoUrl;
-        downloadLink.download = 'visualization.mp4';
-        downloadLink.click();
+        const videoURL = URL.createObjectURL(videoBlob);
 
-        // Cleanup
-        URL.revokeObjectURL(videoUrl);
+        // Download the video file
+        const downloadLink = document.createElement('a');
+        downloadLink.href = videoURL;
+        downloadLink.download = 'visualizations.mp4';
+        downloadLink.click();
     }
 
     downloadVideoButton.addEventListener('click', generateVideo);
