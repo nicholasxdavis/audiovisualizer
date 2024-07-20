@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonar - Visualize</title>
+    <link rel="icon" href="img/logo.png" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Audio Visualizer</h1>
+            <p>A simple and efficient tool for detailed audio analysis and visualization.</p>
+        </header>
+        <main>
+            <section class="upload-section">
+                <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+                <label for="fileInput" class="custom-file-upload">
+                    Choose File
+                </label>
+                <button id="uploadButton">Upload</button>
+            </section>
+            <div class="title">
+                <h1 id="fileNameTitle">Title Goes Here</h1>
+            </div>
+            <table class="state-table" id="stateTable" style="display: none;">
+                <tbody>
+                    <tr>
+                        <td>Duration</td>
+                        <td id="audioDuration">N/A</td>
+                    </tr>
+                    <tr>
+                        <td>Size</td>
+                        <td id="audioSize">0 KB</td>
+                    </tr>
+                    <tr>
+                        <td>Format</td>
+                        <td id="audioFormat">N/A</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="player-container">
+                <div class="player-button-container">
+                    <button class="player-button" id="rewindButton"><i class="fas fa-backward"></i></button>
+                    <button class="player-button" id="playButton"><i class="fas fa-play"></i></button>
+                    <button class="player-button" id="pauseButton" style="display: none;"><i class="fas fa-pause"></i></button>
+                    <button class="player-button" id="fastForwardButton"><i class="fas fa-forward"></i></button>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="progressSlider" min="0" max="100" value="0">
+                    <i class="fas fa-volume-up" id="volumeIcon"></i>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="100">
+                </div>
+            </div>
+            <section class="visualisation-section">
+                <div id="waveform"></div>
+                <div id="spectrogram"></div>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2024 Sonar by <a href="https://www.blacnova.store" style="text-decoration: underline; color: #ff4081;">Blacnova</a>. All rights are reserved.</p>
+        </footer>
+    </div>
+
+    <div class="popup-overlay">
+    <div class="popup-content">
+        <button class="popup-close" onclick="closePopup()">&times;</button>
+        <div class="popup-title">Error: 1</div>
+        <div class="popup-text">Please upload your selected file to proceed with further modifications.</div>
+    </div>
+</div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.1.0/wavesurfer.min.js"></script>
+    <script src="script.js"></script>
+    <script src="background.js"></script>
+</body>
+</html>
